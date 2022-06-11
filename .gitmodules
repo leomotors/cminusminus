@@ -1,0 +1,3 @@
+[submodule "lib/golden-frame"]
+	path = lib/golden-frame
+	url = https://github.com/Leomotors/golden-frame
