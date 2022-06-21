@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
 import { createWriteStream } from "node:fs";
-import fs from "node:fs/promises";
 
 import { CocoaVersion, getElapsed } from "cocoa-discord-utils/meta";
 import {
@@ -50,53 +49,66 @@ export class MainCog extends CogSlashClass {
             .setDescription(
                 `[C--](https://github.com/Leomotors/cminusminus) Bot Version: ${process.env.npm_package_version}\n[Cocoa Discord Utils](https://github.com/Leomotors/cocoa-discord-utils) Version: ${CocoaVersion}\n[@leomotors/music-bot](https://github.com/Leomotors/music-bot) Version: ${MusicVersion}`
             )
-            .addFields(...(await getStatusFields(ctx)));
+            .addFields(await getStatusFields(ctx));
 
-        await ctx.reply({ embeds: [emb], ephemeral });
+        await ctx.reply({ embeds: [emb.toJSON()], ephemeral });
     }
 
     @FutureSlash(async () => {
-        const frame_list = (await fs.readdir("lib/golden-frame/assets"))
-            .filter((f) => !f.endsWith(".json"))
-            .map((i) => [i, i]) as [string, string][];
+        const frameLists = (await exec("golden-frame list")).stdout
+            .split("\n")
+            .slice(1)
+            .filter((l) => l.length)
+            .map((e) => e.split(" ")[0]!.trim())
+            .map((e) => ({ name: e, value: e }));
 
         return AutoBuilder("Create Golden Frame")
-            .addUserOption(
-                CocoaOption("who", "Who to put in the golden frame", true)
-            )
             .addStringOption((option) =>
                 option
                     .setName("frame")
                     .setDescription("Frame Name")
                     .setRequired(true)
-                    .addChoices(frame_list)
+                    .addChoices(...frameLists)
+            )
+            .addUserOption(CocoaOption("who", "Who to put in the golden frame"))
+            .addAttachmentOption(
+                CocoaOption("img", "Image to put in the frame")
             );
     })
     async goldenframe(ctx: CommandInteraction) {
         const frame = ctx.options.getString("frame", true);
-        const target = ctx.options.getUser("who", true);
 
-        const url = target.avatarURL({ size: 4096 });
+        const target_user = ctx.options.getUser("who");
 
-        if (!url) {
-            await ctx.reply(
-                "Cannot Golden Frame: Target user has no profile picture!"
-            );
+        const target_img = ctx.options.getAttachment("img");
+
+        if (!target_user && !target_img) {
+            await ctx.reply("Either user or image must be given!");
             return;
         }
 
         await ctx.deferReply();
 
-        const res = await fetch(url);
+        let url: string | null;
+        if (target_user) {
+            url = target_user.avatarURL({ size: 4096 });
+            if (!url) {
+                await ctx.followUp(
+                    "Cannot Golden Frame: Target user has no profile picture!"
+                );
+                return;
+            }
+        } else {
+            url = target_img!.attachment.toString();
+        }
 
+        const res = await fetch(url);
         if (!res.body) {
             await ctx.followUp("Error fetching profile picture!");
             return;
         }
 
-        const stream = res.body.pipe(
-            createWriteStream("lib/golden-frame/input.png")
-        );
+        const stream = res.body.pipe(createWriteStream("input.png"));
 
         await new Promise<void>((res, rej) => {
             stream.on("close", () => {
@@ -107,10 +119,7 @@ export class MainCog extends CogSlashClass {
             });
         });
 
-        await exec(
-            `cd lib/golden-frame && src/cli.py build ${frame} input.png --output=output.png`
-        );
-
-        await ctx.followUp({ files: ["lib/golden-frame/output.png"] });
+        await exec(`golden-frame build ${frame} input.png --output=output.png`);
+        await ctx.followUp({ files: ["output.png"] });
     }
 }
