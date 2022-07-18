@@ -2,10 +2,10 @@ import "dotenv/config";
 
 import {
     ActivityGroupLoader,
+    ActivityManager,
     checkLogin,
     Cocoa,
     ConsoleManager,
-    useActivityGroup,
 } from "cocoa-discord-utils";
 import { SlashCenter } from "cocoa-discord-utils/slash";
 import { DJCocoaOptions } from "cocoa-discord-utils/template";
@@ -18,7 +18,6 @@ import { MainCog, style } from "./commands";
 
 const client = new Client(DJCocoaOptions);
 const center = new SlashCenter(client, process.env.GUILD_IDS?.split(","));
-const activity = new ActivityGroupLoader("data/activities.json");
 
 center.addCogs(new MainCog(), new Music(client, style));
 center.useHelpCommand(style);
@@ -29,6 +28,9 @@ center.on("error", async (name, err, ctx) => {
     await ctx.channel?.send(`เฮือก error occured: ${err}`);
 });
 
+const activityLoader = new ActivityGroupLoader("data/activities.json");
+const activityManager = new ActivityManager(activityLoader, client);
+
 client.on("ready", (cli) => {
     console.log(
         `Logged in as ${cli.user.tag}, took ${process
@@ -36,8 +38,8 @@ client.on("ready", (cli) => {
             .toFixed(3)} seconds`
     );
     center.syncCommands();
-    useActivityGroup(client, activity);
+    activityManager.nextActivity();
 });
 
-new ConsoleManager().useLogout(client).useReload(activity);
+new ConsoleManager().useLogout(client).useReload(activityLoader);
 checkLogin(client, process.env.DISCORD_TOKEN);
