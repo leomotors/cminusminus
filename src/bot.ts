@@ -8,7 +8,7 @@ import {
     ConsoleManager,
 } from "cocoa-discord-utils";
 import { SlashCenter } from "cocoa-discord-utils/slash";
-import { DJCocoaOptions } from "cocoa-discord-utils/template";
+import { CocoaIntent } from "cocoa-discord-utils/template";
 
 import { Client } from "discord.js";
 
@@ -16,8 +16,8 @@ import { Music } from "@leomotors/music-bot";
 
 import { MainCog, style } from "./commands";
 
-const client = new Client(DJCocoaOptions);
-const center = new SlashCenter(client, process.env.GUILD_IDS?.split(","));
+const client = new Client(new CocoaIntent().useGuildSlash().useGuildVoice());
+const center = new SlashCenter(client, "Global");
 
 center.addCogs(new MainCog(), new Music(client, style));
 center.useHelpCommand(style);
