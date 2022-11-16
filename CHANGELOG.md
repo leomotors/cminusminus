@@ -2,6 +2,10 @@
 
 All notables changes will be noted here
 
+## [1.1.7956.30000] - 2022-11-16
+
+- chore: bump deps
+
 ## [1.1.7956-27892] - 2022-09-18
 
 - Bump Deps
