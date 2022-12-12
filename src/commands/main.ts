@@ -11,9 +11,9 @@ import { getStatusFields } from "cocoa-discord-utils/template";
 
 import { Version as MusicVersion } from "@leomotors/music-bot";
 
-import { exec } from "../utils";
+import { exec } from "../utils/index.js";
 
-import { style } from "./style";
+import { style } from "./style.js";
 
 export class MainCog extends CogSlashClass {
   private timePinged = 0;

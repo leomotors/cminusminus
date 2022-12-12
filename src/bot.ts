@@ -14,7 +14,7 @@ import { Client } from "discord.js";
 
 import { Music } from "@leomotors/music-bot";
 
-import { MainCog, style } from "./commands";
+import { MainCog, style } from "./commands/index.js";
 
 const client = new Client(new CocoaIntent().useGuildSlash().useGuildVoice());
 const center = new SlashCenter(client, "Global");

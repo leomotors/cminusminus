@@ -1,2 +1,2 @@
-export * from "./main";
-export * from "./style";
+export * from "./main.js";
+export * from "./style.js";

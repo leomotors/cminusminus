@@ -2,6 +2,11 @@
 
 All notables changes will be noted here
 
+## [1.1.7956.37892] - 2022-12-12
+
+- chore: bump deps
+- refactor: modern esm spec
+
 ## [1.1.7956.30000] - 2022-11-16
 
 - chore: bump deps
